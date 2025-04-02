@@ -24,7 +24,7 @@ if(WIN32)
 
 	if(GLFW_ROOT_DIR)
 		# Determine the appropriate library directory based on the Visual Studio version
-		if(MSVC_VERSION GREATER_EQUAL 1930 AND MSVC_VERSION LESS 1940)
+		if(MSVC_VERSION GREATER_EQUAL 1930 AND MSVC_VERSION LESS 1945)
 			set(GLFW_LIB_DIR "${GLFW_ROOT_DIR}/lib-vc2022")
 		elseif(MSVC_VERSION GREATER_EQUAL 1920 AND MSVC_VERSION LESS 1930)
 			set(GLFW_LIB_DIR "${GLFW_ROOT_DIR}/lib-vc2019")
@@ -32,7 +32,7 @@ if(WIN32)
 			set(GLFW_LIB_DIR "${GLFW_ROOT_DIR}/lib-vc2017")
 			# Add more conditions for other Visual Studio versions as needed
 		else()
-			message(FATAL_ERROR "Unsupported Visual Studio version for GLFW.")
+			message(FATAL_ERROR "Unsupported Visual Studio version for GLFW." "${MSVC_VERSION}")
 		endif()
 
 		add_library(glfw INTERFACE)

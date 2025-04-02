@@ -29,7 +29,7 @@ public:
 	}
 
 	template<typename TScene, typename TCamera>
-	void renderScene(const TScene &aScene, const TCamera &aCamera, RenderOptions aRenderOptions) {
+	void renderScene(const TScene &aScene, const TCamera &aCamera, RenderOptions aRenderOptions, float timeVal=0.0f) {
 		auto projection = aCamera.getProjectionMatrix();
 		auto view = aCamera.getViewMatrix();
 
@@ -48,6 +48,7 @@ public:
 		fallbackParameters["u_viewPos"] = aCamera.getPosition();
 		fallbackParameters["u_near"] = aCamera.near();
 		fallbackParameters["u_far"] = aCamera.far();
+		fallbackParameters["u_time"] = timeVal;
 
 		GL_CHECK(glPatchParameteri(GL_PATCH_VERTICES, 3));
 		for (const auto &data: renderData) {

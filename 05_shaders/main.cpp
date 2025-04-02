@@ -69,9 +69,9 @@ int main() {
 					case GLFW_KEY_2:
 						config.currentSceneIdx = 1;
 						break;
-					case GLFW_KEY_3:
-						config.currentSceneIdx = 2;
-						break;
+					//case GLFW_KEY_3:
+					//	config.currentSceneIdx = 2;
+					//	break;
 					case GLFW_KEY_W:
 						toggle("Show wireframe", config.showWireframe);
 						break;
@@ -92,28 +92,33 @@ int main() {
 		OGLGeometryFactory geometryFactory;
 
 
-		std::array<SimpleScene, 3> scenes {
+		std::array<SimpleScene, 2> scenes {
 			createCubeScene(materialFactory, geometryFactory),
 			createInstancedCubesScene(materialFactory, geometryFactory),
-			createMonkeyScene(materialFactory, geometryFactory),
+			//createMonkeyScene(materialFactory, geometryFactory),
 		};
 
 		Renderer renderer(materialFactory);
 
 		renderer.initialize();
 		window.runLoop([&] {
+			// Get current time
+			float time = static_cast<float>(glfwGetTime());
+			//GLuint timeLocation = glGetUniformLocation(, "u_time");
+			//glUniform1f(timeLocation, time);  // Set time uniform
+
 			renderer.clear();
 			if (config.showSolid) {
 				GL_CHECK(glDisable(GL_POLYGON_OFFSET_LINE));
 				GL_CHECK(glPolygonOffset(0.0f, 0.0f));
 				GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-				renderer.renderScene(scenes[config.currentSceneIdx], camera, RenderOptions{"solid"});
+				renderer.renderScene(scenes[config.currentSceneIdx], camera, RenderOptions{"solid"}, time);
 			}
 			if (config.showWireframe) {
 				GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
 				GL_CHECK(glEnable(GL_POLYGON_OFFSET_LINE));
 				GL_CHECK(glPolygonOffset(-1.0f, -1.0f));
-				renderer.renderScene(scenes[config.currentSceneIdx], camera, RenderOptions{"wireframe"});
+				renderer.renderScene(scenes[config.currentSceneIdx], camera, RenderOptions{"wireframe"}, time);
 			}
 			if (config.showNormals) {
 				GL_CHECK(glEnable(GL_POLYGON_OFFSET_LINE));
