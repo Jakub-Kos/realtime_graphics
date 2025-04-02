@@ -158,7 +158,7 @@ mat3 cotangent_frame( vec3 N, vec3 p, vec2 uv )
 
 vec3 perturb_normal(mat3 TBN, vec2 texcoord )
 {
-    vec3 map = texture2D( u_normalTexture, texcoord ).xyz;
+    vec3 map = texture( u_normalTexture, texcoord ).xyz;
     map = map * 255./127. - 128./127.;
     return normalize( TBN * map );
 }
@@ -167,7 +167,7 @@ vec3 perturb_normal( vec3 N, vec3 V, vec2 texcoord )
 {
     // assume N, the interpolated vertex normal and
     // V, the view vector (vertex to eye)
-    vec3 map = texture2D( u_normalTexture, texcoord ).xyz;
+    vec3 map = texture( u_normalTexture, texcoord ).xyz;
     map = map * 255./127. - 128./127.;
     mat3 TBN = cotangent_frame( N, -V, texcoord );
     return normalize( TBN * map );
@@ -177,7 +177,7 @@ const vec2 scaleBias = vec2(0.01, 0.00);
 
 vec2 parallax_map(mat3 TBN, vec3 V, vec2 texcoord)
 {
-	float height = texture2D(u_displacementTexture, texcoord).r;
+	float height = texture(u_displacementTexture, texcoord).r;
 	float v = height * scaleBias.x - scaleBias.y;
 	vec3 eye = normalize(TBN * V);
 	vec2 offset = - (eye.xy/eye.z * v);
@@ -201,14 +201,14 @@ vec2 steep_parallax_map(mat3 TBN, vec3 V, vec2 texCoords, float numLayers)
 	vec2 deltaTexCoords = P / numLayers;
 
 	vec2  currentTexCoords     = texCoords;
-	float currentDepthMapValue = texture2D(u_displacementTexture, texCoords).r;
+	float currentDepthMapValue = texture(u_displacementTexture, texCoords).r;
 
 	while(currentLayerDepth < currentDepthMapValue)
 	{
 	    // shift texture coordinates along direction of P
 	    currentTexCoords -= deltaTexCoords;
 	    // get depthmap value at current texture coordinates
-	    currentDepthMapValue = texture2D(u_displacementTexture, currentTexCoords).r;
+	    currentDepthMapValue = texture(u_displacementTexture, currentTexCoords).r;
 	    // get depth of next layer
 	    currentLayerDepth += layerDepth;
 	}
@@ -261,7 +261,6 @@ void main() {
 			out_color = out_color * texture(u_ambientOccTexture, updatedTexCoords).r;
 		}
 	} else {
-		out_color = vec4(texture2D( u_normalTexture, updatedTexCoords ).xyz, 1.0);
+		out_color = vec4(texture( u_normalTexture, updatedTexCoords ).xyz, 1.0);
 	}
 }
-
