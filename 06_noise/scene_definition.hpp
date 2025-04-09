@@ -171,11 +171,11 @@ inline SimpleScene createMonkeyScene(MaterialFactory &aMaterialFactory, Geometry
 inline SimpleScene createTerrainScene(MaterialFactory &aMaterialFactory, GeometryFactory &aGeometryFactory) {
 	SimpleScene scene;
 	{
-		auto plane = std::make_shared<Plane>();
-		// auto plane = std::make_shared<LoadedMeshObject>("./data/geometry/plane.obj");
+		//auto plane = std::make_shared<Plane>();
+		auto plane = std::make_shared<LoadedMeshObject>("./data/geometry/plane.obj");
 
 		plane->setName("Plane");
-		plane->setRotation(glm::vec3(glm::radians(70.0f), 0.0f, 0.0f));
+		//plane->setRotation(glm::vec3(glm::radians(70.0f), 0.0f, 0.0f));
 		plane->setScale(glm::vec3(2.0f));
 		plane->addMaterial(
 			"solid",
