@@ -52,14 +52,24 @@ export const enemyPositions = [
 	[0, 0, -6]
 ];
 
+export const wallData = [
+	{ position: [0, 0, -10], scale: [10, 2, 1], rotationY: 0 },
+	{ position: [5, 0, -5], scale: [1, 2, 10], rotationY: 0 },
+	{ position: [-5, 0, -5], scale: [1, 2, 10], rotationY: 0 },
+];
 let enemyVAO, floorVAO;
 let floorTexture, enemyTexture;
-export function initScene(gl, enemyProgram, floorProgram) {
+let wallVAO, wallTexture;
+
+export function initScene(gl, enemyProgram, floorProgram, wallProgram) {
 	enemyVAO = createEnemyGeometry(gl, enemyProgram);
 	floorVAO = createFloorGeometry(gl, floorProgram);
 
 	floorTexture = loadTexture(gl, './floor.png');
 	enemyTexture = loadTexture(gl, './imp.png');
+
+	wallVAO = createEnemyGeometry(gl, wallProgram); // Reusing same quad
+	wallTexture = loadTexture(gl, './floor.png');     // Add your wall texture file
 }
 
 /*export function drawScene(gl, enemyProgram, floorProgram) {
@@ -141,9 +151,24 @@ function renderEnemies(gl, program, view, proj) {
   gl.uniform1i(gl.getUniformLocation(program, 'u_texture'), 0);
 
   gl.bindVertexArray(enemyVAO);
+
+  // Invert the view matrix to extract the camera position.
+  const invView = mat4.create();
+  mat4.invert(invView, view);
+  const cameraPos = [invView[12], invView[13], invView[14]];
+
   for (const pos of enemyPositions) {
     const model = mat4.create();
     mat4.translate(model, model, pos);
+
+	// Compute angle between enemy and camera on the XZ plane
+    const dx = cameraPos[0] - pos[0];
+    const dz = cameraPos[2] - pos[2];
+    const angle = Math.atan2(dx, dz);
+    
+    // Rotate the enemy about the Y axis to face the camera
+    mat4.rotateY(model, model, angle);
+
     mat3.fromMat4(normalMat, model);
     mat3.invert(normalMat, normalMat);
     mat3.transpose(normalMat, normalMat);
@@ -181,7 +206,40 @@ function renderFloor(gl, program, view, proj) {
   gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 }
 
-export function drawScene(gl, enemyProgram, floorProgram) {
+function renderWalls(gl, program, view, proj) {
+	const normalMat = mat3.create();
+	const uModel = gl.getUniformLocation(program, 'u_modelMat');
+	const uView = gl.getUniformLocation(program, 'u_viewMat');
+	const uProj = gl.getUniformLocation(program, 'u_projMat');
+	const uNormal = gl.getUniformLocation(program, 'u_normalMat');
+
+	gl.useProgram(program);
+	gl.uniformMatrix4fv(uView, false, view);
+	gl.uniformMatrix4fv(uProj, false, proj);
+
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, wallTexture);
+	gl.uniform1i(gl.getUniformLocation(program, 'u_texture'), 0);
+
+	gl.bindVertexArray(wallVAO);
+
+	for (const { position, scale, rotationY } of wallData) {
+		const model = mat4.create();
+		mat4.translate(model, model, position);
+		mat4.rotateY(model, model, rotationY);
+		mat4.scale(model, model, scale);
+
+		mat3.fromMat4(normalMat, model);
+		mat3.invert(normalMat, normalMat);
+		mat3.transpose(normalMat, normalMat);
+
+		gl.uniformMatrix4fv(uModel, false, model);
+		gl.uniformMatrix3fv(uNormal, false, normalMat);
+		gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
+	}
+}
+
+export function drawScene(gl, enemyProgram, floorProgram, wallProgram) {
 
 	const view = mat4.create();
 	const center = vec3.create();
@@ -192,6 +250,8 @@ export function drawScene(gl, enemyProgram, floorProgram) {
 	mat4.perspective(proj, Math.PI / 4, gl.canvas.width / gl.canvas.height, 0.1, 100);
 
 	renderFloor(gl, floorProgram, view, proj);
+	renderWalls(gl, wallProgram, view, proj);
 
 	renderEnemies(gl, enemyProgram, view, proj);
+
 }

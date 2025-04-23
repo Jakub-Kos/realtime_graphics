@@ -1,5 +1,5 @@
 import { createGLContext, loadShaderProgram } from './gl-utils.js';
-import { vertexShaderSrc, fragmentShaderEnemySrc, fragmentShaderFloorSrc } from './shaders.js';
+import { vertexShaderSrc, vertexShaderBillboardSrc, fragmentShaderEnemySrc, fragmentShaderFloorSrc } from './shaders.js';
 import { initScene, drawScene, updateCamera, camera } from './scene.js';
 
 const canvas = document.getElementById("glCanvas");
@@ -14,12 +14,13 @@ window.addEventListener('resize', () => {
 
 const enemyProgram = loadShaderProgram(gl, vertexShaderSrc, fragmentShaderEnemySrc);
 const floorProgram = loadShaderProgram(gl, vertexShaderSrc, fragmentShaderFloorSrc);
+const wallProgram = loadShaderProgram(gl, vertexShaderSrc, fragmentShaderFloorSrc);
 
 gl.enable(gl.DEPTH_TEST);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-initScene(gl, enemyProgram, floorProgram);
+initScene(gl, enemyProgram, floorProgram, wallProgram);
 
 canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
 canvas.onclick = () => canvas.requestPointerLock();
@@ -29,7 +30,7 @@ function render() {
   updateCamera();
   gl.clearColor(0.1, 0.1, 0.1, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  drawScene(gl, enemyProgram, floorProgram);
+  drawScene(gl, enemyProgram, floorProgram, wallProgram);
   requestAnimationFrame(render);
 }
 requestAnimationFrame(render);
