@@ -72,69 +72,6 @@ export function initScene(gl, enemyProgram, floorProgram, wallProgram) {
 	wallTexture = loadTexture(gl, './floor.png');     // Add your wall texture file
 }
 
-/*export function drawScene(gl, enemyProgram, floorProgram) {
-	const view = mat4.create();
-	const center = vec3.create();
-	vec3.add(center, camera.pos, camera.front);
-	mat4.lookAt(view, camera.pos, center, camera.up);
-
-	const proj = mat4.create();
-	mat4.perspective(proj, Math.PI / 4, gl.canvas.width / gl.canvas.height, 0.1, 100);
-
-	const normalMat = mat3.create();
-
-	// Draw enemies
-	gl.useProgram(enemyProgram);
-	const uModel = gl.getUniformLocation(enemyProgram, 'u_modelMat');
-	const uView = gl.getUniformLocation(enemyProgram, 'u_viewMat');
-	const uProj = gl.getUniformLocation(enemyProgram, 'u_projMat');
-	const uNormal = gl.getUniformLocation(enemyProgram, 'u_normalMat');
-	gl.uniformMatrix4fv(uView, false, view);
-	gl.uniformMatrix4fv(uProj, false, proj);
-
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, enemyTexture);
-	gl.uniform1i(gl.getUniformLocation(enemyProgram, 'u_texture'), 0);
-
-	gl.bindVertexArray(enemyVAO);
-	for (const pos of enemyPositions) {
-		const model = mat4.create();
-		mat4.translate(model, model, pos);
-		mat3.fromMat4(normalMat, model);
-		mat3.invert(normalMat, normalMat);
-		mat3.transpose(normalMat, normalMat);
-		gl.uniformMatrix4fv(uModel, false, model);
-		gl.uniformMatrix3fv(uNormal, false, normalMat);
-		gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-	}
-
-	// Draw floor
-	gl.useProgram(floorProgram);
-	const uModelF = gl.getUniformLocation(floorProgram, 'u_modelMat');
-	const uViewF = gl.getUniformLocation(floorProgram, 'u_viewMat');
-	const uProjF = gl.getUniformLocation(floorProgram, 'u_projMat');
-	const uNormalF = gl.getUniformLocation(floorProgram, 'u_normalMat');
-
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, floorTexture);
-	gl.uniform1i(gl.getUniformLocation(floorProgram, 'u_texture'), 0);
-
-	gl.uniformMatrix4fv(uViewF, false, view);
-	gl.uniformMatrix4fv(uProjF, false, proj);
-
-	const floorModel = mat4.create();
-	mat4.scale(floorModel, floorModel, [100, 1, 100]);
-	mat3.fromMat4(normalMat, floorModel);
-	mat3.invert(normalMat, normalMat);
-	mat3.transpose(normalMat, normalMat);
-
-	gl.uniformMatrix4fv(uModelF, false, floorModel);
-	gl.uniformMatrix3fv(uNormalF, false, normalMat);
-
-	gl.bindVertexArray(floorVAO);
-	gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-}*/
-
 function renderEnemies(gl, program, view, proj) {
   const normalMat = mat3.create();
   const uModel = gl.getUniformLocation(program, 'u_modelMat');
