@@ -1,5 +1,5 @@
-#include <CL/cl.hpp>
-//#include <CL/opencl.hpp>
+//#include <CL/cl.hpp>
+#include <CL/opencl.hpp>
 #include <vector>
 #include <iostream>
 #include <random>

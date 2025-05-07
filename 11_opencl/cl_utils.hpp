@@ -20,7 +20,7 @@ inline void save_png(const std::filesystem::path& directory, const std::vector<c
 	// std::transform(buffer.begin(), buffer.end(), tmp.begin(), [](const auto &val) { return val * 255; });
 	std::ostringstream filename;
 	filename << "output_" << std::setw(3) << std::setfill('0') << iteration << ".png";
-	stbi_write_png((directory / filename.str()).c_str(), width, height, channels, buffer.data(), width);
+	stbi_write_png((directory / filename.str()).string().c_str(), width, height, channels, buffer.data(), width);
 }
 
 // Function to load a grayscale image from a file
