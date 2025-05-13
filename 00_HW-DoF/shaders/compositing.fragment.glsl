@@ -5,6 +5,10 @@ layout(binding = 1) uniform sampler2D u_normal;
 layout(binding = 2) uniform sampler2D u_position;
 layout(binding = 3) uniform sampler2D u_shadowMap;
 
+layout(binding = 4) uniform sampler2D u_depthMap;
+uniform float u_nearPlane;  // Near plane value
+uniform float u_farPlane;   // Far plane value
+
 layout(location = 15) uniform vec3 u_lightPos;
 layout(location = 20) uniform mat4 u_lightMat;
 layout(location = 40) uniform mat4 u_lightProjMat;
@@ -26,7 +30,7 @@ void main() {
 
 	vec4 shadowCoords = (u_lightProjMat * u_lightMat * vec4(position, 1.0));
 
-	
+
 	// shadowCoords are in light clipspace, but we get fragment relative 
 	// coordinates in the shadowmap, so we need to remap to [0,1] interval in all dimensions
 	vec3 mappedShadowCoords = (shadowCoords.xyz/shadowCoords.w) * 0.5 + 0.5;
@@ -37,5 +41,6 @@ void main() {
 			fragColor = vec4(0.5 * diffuseColor, 1.0);
 		}
 	}
+
 }
 

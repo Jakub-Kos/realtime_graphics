@@ -42,6 +42,10 @@ inline std::vector<CADescription> getSingleColorAttachment() {
 	};
 }
 
+std::unique_ptr<Framebuffer>           mSceneFBO;
+std::unique_ptr<Framebuffer>           mBlurFBO;
+std::shared_ptr<OGLShaderProgram>      mBlurShader;
+std::shared_ptr<OGLShaderProgram>      mDofShader;
 
 class Renderer {
 public:
@@ -54,6 +58,11 @@ public:
 		// 	mMaterialFactory.getShaderProgram("solid_color"));
 		mShadowMapShader = std::static_pointer_cast<OGLShaderProgram>(
 			mMaterialFactory.getShaderProgram("shadowmap"));
+
+		mBlurShader = std::static_pointer_cast<OGLShaderProgram>(
+			mMaterialFactory.getShaderProgram("gaussian_blur"));
+		mDofShader = std::static_pointer_cast<OGLShaderProgram>(
+			mMaterialFactory.getShaderProgram("dof"));
 	}
 
 	void initialize(int aWidth, int aHeight) {
@@ -71,6 +80,17 @@ public:
 			{ "u_depthMap", TextureInfo("diffuse", mFramebuffer->getColorAttachment(3)) }, //added depth map
 			// { "u_shadowMap", TextureInfo("shadowMap", mShadowmapFramebuffer->getDepthMap()) },
 			{ "u_shadowMap", TextureInfo("shadowMap", mShadowmapFramebuffer->getColorAttachment(0)) },
+		};
+
+		mSceneFBO = std::make_unique<Framebuffer>(mWidth, mHeight, getSingleColorAttachment());
+		mBlurFBO = std::make_unique<Framebuffer>(mWidth, mHeight, getSingleColorAttachment());
+
+		mDoFParameters = {
+			// sharp & blurred scene come from your two FBOs:
+			{ "u_scene",    TextureInfo("u_scene",    mSceneFBO->getColorAttachment(0)) },
+			{ "u_blur",     TextureInfo("u_blur",     mBlurFBO->getColorAttachment(0)) },
+			// **this is the only new line** – the 4th attachment of your G-buffer
+			{ "u_depthMap", TextureInfo("u_depthMap", mFramebuffer->getColorAttachment(3)) },
 		};
 	}
 
@@ -123,13 +143,25 @@ public:
 	}
 
 	template<typename TLight>
-	void compositingPass(const TLight &aLight) {
+	void compositingPass(const TLight& light) {
 		GL_CHECK(glDisable(GL_DEPTH_TEST));
-		GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
-		mCompositingParameters["u_lightPos"] = aLight.getPosition();
-		mCompositingParameters["u_lightMat"] = aLight.getViewMatrix();
-		mCompositingParameters["u_lightProjMat"] = aLight.getProjectionMatrix();
-		mQuadRenderer.render(*mCompositingShader, mCompositingParameters);
+		GL_CHECK(glViewport(0, 0, mWidth, mHeight));
+
+		// 1) render lit‐scene into mSceneFBO
+		mSceneFBO->bind();
+		mSceneFBO->setDrawBuffers();
+		GL_CHECK(glClearColor(0, 0, 0, 0));
+		GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
+
+		// 2) build a fresh param block from your existing map + light uniforms
+		MaterialParameterValues params = mCompositingParameters;
+		params["u_lightPos"] = light.getPosition();
+		params["u_lightMat"] = light.getViewMatrix();
+		params["u_lightProjMat"] = light.getProjectionMatrix();
+
+		// 3) draw full‐screen quad into mSceneFBO
+		mQuadRenderer.render(*mCompositingShader, params);
+		mSceneFBO->unbind();
 	}
 
 	template<typename TScene, typename TLight>
@@ -177,6 +209,43 @@ public:
 		mShadowmapFramebuffer->unbind();
 	}
 
+	void blurPass() {
+		bool horizontal = true, first = true;
+		for (int i = 0; i < 2; ++i) {
+			// each pass writes into mBlurFBO
+			mBlurFBO->bind();
+			mBlurFBO->setDrawBuffers();
+
+			// set up only the two uniforms our gaussian_blur.frag needs
+			MaterialParameterValues params;
+			// u_image comes from mSceneFBO on first pass, then from mBlurFBO
+			params["u_image"] = TextureInfo("u_image",
+				first
+				? mSceneFBO->getColorAttachment(0)
+				: mBlurFBO->getColorAttachment(0));
+			params["u_horizontal"] = horizontal;
+
+			mQuadRenderer.render(*mBlurShader, params);
+			mBlurFBO->unbind();
+
+			horizontal = !horizontal;
+			first = false;
+		}
+	}
+
+	void dofPass(float focusDist, float focusRange) {
+		// back to screen
+		GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		GL_CHECK(glViewport(0, 0, mWidth, mHeight));
+
+		MaterialParameterValues params = mDoFParameters;
+		params["u_focusDist"] = focusDist;
+		params["u_focusRange"] = focusRange;
+
+		mQuadRenderer.render(*mDofShader, params);
+	}
+
+
 protected:
 	int mWidth = 100;
 	int mHeight = 100;
@@ -189,4 +258,10 @@ protected:
 	std::shared_ptr<OGLShaderProgram> mCompositingShader;
 	std::shared_ptr<OGLShaderProgram> mShadowMapShader;
 	OGLMaterialFactory &mMaterialFactory;
+
+	std::unique_ptr<Framebuffer>   mSceneFBO;    // to capture the lit scene
+	std::unique_ptr<Framebuffer>   mBlurFBO;     // ping‐pong target for gaussian blur
+	std::shared_ptr<OGLShaderProgram> mBlurShader;
+	std::shared_ptr<OGLShaderProgram> mDofShader;
+	MaterialParameterValues    mDoFParameters;    
 };

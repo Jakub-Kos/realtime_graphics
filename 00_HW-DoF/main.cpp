@@ -31,6 +31,9 @@ struct Config {
 	bool showSolid = true;
 	bool showWireframe = false;
 	bool useZOffset = false;
+
+	float focusDist = 0.9f;
+	float focusRange = 0.9f;
 };
 
 int main() {
@@ -60,14 +63,26 @@ int main() {
 				}
 			});
 		window.setKeyCallback([&config, &camera](GLFWwindow *aWin, int key, int scancode, int action, int mods) {
-				if (action == GLFW_PRESS) {
-					switch (key) {
-					case GLFW_KEY_ENTER:
-						camera.setPosition(glm::vec3(0.0f, -10.0f, -50.0f));
-						camera.lookAt(glm::vec3());
-						break;
-					}
+			if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+				switch (key) {
+				case GLFW_KEY_Z: // decrease focal distance
+					config.focusDist = std::max(0.0f, config.focusDist - .1f);
+					std::cout << "focusDist = " << config.focusDist << "\n";
+					break;
+				case GLFW_KEY_X: // increase focal distance
+					config.focusDist += .1f;
+					std::cout << "focusDist = " << config.focusDist << "\n";
+					break;
+				case GLFW_KEY_C: // decrease focal range
+					config.focusRange = std::max(0.1f, config.focusRange - .1f);
+					std::cout << "focusRange = " << config.focusRange << "\n";
+					break;
+				case GLFW_KEY_V: // increase focal range
+					config.focusRange += .1f;
+					std::cout << "focusRange = " << config.focusRange << "\n";
+					break;
 				}
+			}
 			});
 
 		OGLMaterialFactory materialFactory;
@@ -95,7 +110,10 @@ int main() {
 
 			renderer.clear();
 			renderer.geometryPass(scenes[config.currentSceneIdx], camera, RenderOptions{"solid"});
+			//renderer.compositingPass(light);
 			renderer.compositingPass(light);
+			renderer.blurPass();
+			renderer.dofPass(config.focusDist, config.focusRange);
 		});
 	} catch (ShaderCompilationError &exc) {
 		std::cerr
