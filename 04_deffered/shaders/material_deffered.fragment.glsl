@@ -9,15 +9,18 @@ layout(binding = 4) uniform sampler2D u_ambientOccTexture;
 in vec4 position;
 in vec2 texCoords;
 in vec3 normal;
+in vec4 viewPosition;  // Incoming camera-space position from vertex shader
+
 
 out vec4 out_color;
 out vec3 out_normal;
 out vec3 out_position;
-
+out float out_depth; // Added depth output
 
 void main() {
 	out_color = texture(u_diffuseTexture, texCoords);
 	out_normal = normalize(normal);
 	out_position = position.xyz/position.w;
+	out_depth = -viewPosition.z; // Output the depth component
 }
 
