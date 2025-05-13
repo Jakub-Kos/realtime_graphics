@@ -86,11 +86,11 @@ public:
 		mBlurFBO = std::make_unique<Framebuffer>(mWidth, mHeight, getSingleColorAttachment());
 
 		mDoFParameters = {
-			// sharp & blurred scene come from your two FBOs:
 			{ "u_scene",    TextureInfo("u_scene",    mSceneFBO->getColorAttachment(0)) },
 			{ "u_blur",     TextureInfo("u_blur",     mBlurFBO->getColorAttachment(0)) },
-			// **this is the only new line** – the 4th attachment of your G-buffer
 			{ "u_depthMap", TextureInfo("u_depthMap", mFramebuffer->getColorAttachment(3)) },
+			{ "u_focusUV",    glm::vec2(0.5f, 0.5f) },   // start centered
+			{ "u_focusRange", 0.1f }                     // default range
 		};
 	}
 
@@ -233,15 +233,17 @@ public:
 		}
 	}
 
-	void dofPass(float focusDist, float focusRange) {
-		// back to screen
+	void dofPass(const glm::vec2& focusUV, float focusRange) {
+		// 1) back to the default framebuffer (the screen)
 		GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		GL_CHECK(glViewport(0, 0, mWidth, mHeight));
 
+		// 2) copy your template DoF parameters and override the two dynamic ones
 		MaterialParameterValues params = mDoFParameters;
-		params["u_focusDist"] = focusDist;
-		params["u_focusRange"] = focusRange;
+		params["u_focusUV"] = focusUV;     // <<< mouse‐driven focus
+		params["u_focusRange"] = focusRange;  // <<< how wide the sharp band is
 
+		// 3) draw
 		mQuadRenderer.render(*mDofShader, params);
 	}
 
