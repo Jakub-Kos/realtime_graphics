@@ -6,6 +6,7 @@
 #include <vector>
 #include <array>
 
+// for the cursor handling
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
@@ -25,16 +26,17 @@ void toggle(const std::string& aToggleName, bool& aToggleValue) {
 }
 
 struct Config {
-    int     currentSceneIdx = 0;
-    bool    showSolid = true;
-    bool    showWireframe = false;
-    bool    useZOffset = false;
+    int currentSceneIdx = 0;
+    bool showSolid = true;
+    bool showWireframe = false;
+    bool useZOffset = false;
 
-    glm::vec2 focusUV = glm::vec2(0.5f, 0.5f);  // normalized mouse
-    float     focusRange = 0.1f;                   // ±10% of depth span
+    glm::vec2 focusUV = glm::vec2(0.5f, 0.5f);  // normalized mouse, replacing the focusDist
+    float     focusRange = 0.1f;                // ±10% of depth span
 };
 
 int main() {
+    // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
         return -1;

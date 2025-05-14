@@ -1,14 +1,14 @@
 #version 430 core
 
-layout(binding = 0) uniform sampler2D u_scene;
-layout(binding = 1) uniform sampler2D u_blur;
+layout(binding = 0) uniform sampler2D u_scene;      // sharp lit scene
+layout(binding = 1) uniform sampler2D u_blur;       // blurred result
 layout(binding = 2) uniform sampler2D u_depthMap;
 
 // instead of a fixed focus depth, pass the mouse UV:
 layout(location = 0) uniform vec2  u_focusUV;    // normalized [0,1] screen coords
 layout(location = 1) uniform float u_focusRange; // half-width in normalized depth
 
-in  vec2 texCoords;
+in vec2 texCoords;
 out vec4 fragColor;
 
 void main() {

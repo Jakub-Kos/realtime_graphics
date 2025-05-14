@@ -238,10 +238,10 @@ public:
 		GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		GL_CHECK(glViewport(0, 0, mWidth, mHeight));
 
-		// 2) copy your template DoF parameters and override the two dynamic ones
+		// 2) copy template DoF parameters and override the two dynamic ones
 		MaterialParameterValues params = mDoFParameters;
-		params["u_focusUV"] = focusUV;     // <<< mouse‐driven focus
-		params["u_focusRange"] = focusRange;  // <<< how wide the sharp band is
+		params["u_focusUV"] = focusUV;     // mouse‐driven focus
+		params["u_focusRange"] = focusRange;  // how wide the sharp band is
 
 		// 3) draw
 		mQuadRenderer.render(*mDofShader, params);
