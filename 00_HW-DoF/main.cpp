@@ -32,7 +32,7 @@ struct Config {
     bool useZOffset = false;
 
     glm::vec2 focusUV = glm::vec2(0.5f, 0.5f);  // normalized mouse, replacing the focusDist
-    float     focusRange = 0.1f;                // ±10% of depth span
+    float     focusRange = 2.0f;                // ±10% of depth span
 };
 
 int main() {

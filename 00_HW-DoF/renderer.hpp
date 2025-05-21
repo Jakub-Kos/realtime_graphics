@@ -42,8 +42,15 @@ inline std::vector<CADescription> getSingleColorAttachment() {
 	};
 }
 
+inline std::vector<CADescription> getDoubleColorAttachment() {
+	return {
+		{ GL_RGBA, GL_FLOAT, GL_RGBA32F },
+		{ GL_RGBA, GL_FLOAT, GL_RGBA32F },
+	};
+}
+
 std::unique_ptr<Framebuffer>           mSceneFBO;
-std::unique_ptr<Framebuffer>           mBlurFBO;
+std::unique_ptr<Framebuffer>           m1BlurFBO;
 std::shared_ptr<OGLShaderProgram>      mBlurShader;
 std::shared_ptr<OGLShaderProgram>      mDofShader;
 
@@ -83,13 +90,14 @@ public:
 		};
 
 		mSceneFBO = std::make_unique<Framebuffer>(mWidth, mHeight, getSingleColorAttachment());
-		mBlurFBO = std::make_unique<Framebuffer>(mWidth, mHeight, getSingleColorAttachment());
+		m1BlurFBO = std::make_unique<Framebuffer>(mWidth, mHeight, getDoubleColorAttachment());
 
 		mDoFParameters = {
-			{ "u_scene",    TextureInfo("u_scene",    mSceneFBO->getColorAttachment(0)) },
-			{ "u_blur",     TextureInfo("u_blur",     mBlurFBO->getColorAttachment(0)) },
+			{ "u_scene",	TextureInfo("u_scene",	mSceneFBO->getColorAttachment(0)) },
+			{ "u_1blur",	TextureInfo("u_1blur",	m1BlurFBO->getColorAttachment(0)) },
+			{ "u_2blur",	TextureInfo("u_2blur",	m1BlurFBO->getColorAttachment(1)) },
 			{ "u_depthMap", TextureInfo("u_depthMap", mFramebuffer->getColorAttachment(3)) },
-			{ "u_focusUV",    glm::vec2(0.5f, 0.5f) },   // start centered
+			{ "u_focusUV",	glm::vec2(0.5f, 0.5f) },   // start centered
 			{ "u_focusRange", 0.1f }                     // default range
 		};
 	}
@@ -213,20 +221,26 @@ public:
 		bool horizontal = true, first = true;
 		for (int i = 0; i < 2; ++i) {
 			// each pass writes into mBlurFBO
-			mBlurFBO->bind();
-			mBlurFBO->setDrawBuffers();
+			m1BlurFBO->bind();
+			m1BlurFBO->setDrawBuffers();
 
 			// set up only the two uniforms our gaussian_blur.frag needs
 			MaterialParameterValues params;
 			// u_image comes from mSceneFBO on first pass, then from mBlurFBO
-			params["u_image"] = TextureInfo("u_image",
+			params["u_1image"] = TextureInfo("u_1image",
 				first
 				? mSceneFBO->getColorAttachment(0)
-				: mBlurFBO->getColorAttachment(0));
+				: m1BlurFBO->getColorAttachment(0));
+
+			params["u_2image"] = TextureInfo("u_2image",
+				first
+				? mSceneFBO->getColorAttachment(0)
+				: m1BlurFBO->getColorAttachment(1));
+
 			params["u_horizontal"] = horizontal;
 
 			mQuadRenderer.render(*mBlurShader, params);
-			mBlurFBO->unbind();
+			m1BlurFBO->unbind();
 
 			horizontal = !horizontal;
 			first = false;
@@ -240,8 +254,8 @@ public:
 
 		// 2) copy template DoF parameters and override the two dynamic ones
 		MaterialParameterValues params = mDoFParameters;
-		params["u_focusUV"] = focusUV;     // mouse‐driven focus
-		params["u_focusRange"] = focusRange;  // how wide the sharp band is
+		params["u_focusUV"] = focusUV;			// mouse‐driven focus
+		params["u_focusRange"] = focusRange;	// how wide the sharp band is
 
 		// 3) draw
 		mQuadRenderer.render(*mDofShader, params);
@@ -262,7 +276,7 @@ protected:
 	OGLMaterialFactory &mMaterialFactory;
 
 	std::unique_ptr<Framebuffer>   mSceneFBO;    // to capture the lit scene
-	std::unique_ptr<Framebuffer>   mBlurFBO;     // ping‐pong target for gaussian blur
+	std::unique_ptr<Framebuffer>   m1BlurFBO;     // ping‐pong target for gaussian blur
 	std::shared_ptr<OGLShaderProgram> mBlurShader;
 	std::shared_ptr<OGLShaderProgram> mDofShader;
 	MaterialParameterValues    mDoFParameters;    
