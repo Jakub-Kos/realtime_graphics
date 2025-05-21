@@ -133,7 +133,7 @@ inline SimpleScene createMIPScene2(MaterialFactory &aMaterialFactory, GeometryFa
 				"mip",
 				RenderStyle::Solid,
 				{
-					 { "u_volumeData", TextureInfo("lebka1.dump") },
+				    { "u_volumeData", TextureInfo("lebka1.dump") },
 					// { "u_volumeData", TextureInfo("vertebra16.mhd") },
 					// { "u_volumeData", TextureInfo("mrt16_angio2.mhd") },
 					{ "u_intensityMultiplier", 20.0f },
