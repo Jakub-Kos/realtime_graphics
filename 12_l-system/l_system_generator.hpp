@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include <stack>
 // Represents a line segment in 3D space with thickness at each end
 struct LineSegment {
     glm::vec3 start;

@@ -98,3 +98,40 @@ inline SimpleScene createLSystemScene2(MaterialFactory &aMaterialFactory, Geomet
 	return scene;
 }
 
+inline SimpleScene createLSystemScene3(MaterialFactory& aMaterialFactory, GeometryFactory& aGeometryFactory) {
+	SimpleScene scene;
+	{
+		auto tree = std::make_shared<LSystem>();
+		tree->loadRuleSet("./rules/tree_03.rule");
+		tree->setConfig({
+				{"angle", 90.0f}
+			});
+		tree->runGenerations(7);
+
+		tree->setName("TREE1");
+		tree->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+		tree->addMaterial(
+			"solid",
+			MaterialParameters(
+				"branches",
+				RenderStyle::Solid,
+				{
+					{"u_solidColor", glm::vec4(0.3, 0.2, 0.0, 1)},
+					{"u_shrinkageFactor", 0.95f},
+					{"u_initialThickness", 0.05f}
+				}
+			)
+		);
+		tree->addMaterial(
+			"wireframe",
+			MaterialParameters(
+				"solid_color",
+				RenderStyle::Wireframe,
+				{}
+			)
+		);
+		tree->prepareRenderData(aMaterialFactory, aGeometryFactory);
+		scene.addObject(tree);
+	}
+	return scene;
+}
