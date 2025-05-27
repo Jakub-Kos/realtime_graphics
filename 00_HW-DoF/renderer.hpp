@@ -61,8 +61,6 @@ public:
 	{
 		mCompositingShader = std::static_pointer_cast<OGLShaderProgram>(
 				mMaterialFactory.getShaderProgram("compositing"));
-		// mShadowMapShader = std::static_pointer_cast<OGLShaderProgram>(
-		// 	mMaterialFactory.getShaderProgram("solid_color"));
 		mShadowMapShader = std::static_pointer_cast<OGLShaderProgram>(
 			mMaterialFactory.getShaderProgram("shadowmap"));
 
@@ -79,7 +77,6 @@ public:
 
 		mFramebuffer = std::make_unique<Framebuffer>(aWidth, aHeight, getColorNormalPositionAttachments());
 		mShadowmapFramebuffer = std::make_unique<Framebuffer>(600, 600, getSingleColorAttachment());
-		// mShadowmapFramebuffer = std::make_unique<ShadowmapFramebuffer>(600, 600);
 		mCompositingParameters = {
 			{ "u_diffuse", TextureInfo("diffuse", mFramebuffer->getColorAttachment(0)) },
 			{ "u_normal", TextureInfo("diffuse", mFramebuffer->getColorAttachment(1)) },
@@ -247,7 +244,7 @@ public:
 		}
 	}
 
-	void dofPass(const glm::vec2& focusUV, float focusRange) {
+	void dofPass(const glm::vec2& focusUV, float focusRange, float blurRange) {
 		// 1) back to the default framebuffer (the screen)
 		GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		GL_CHECK(glViewport(0, 0, mWidth, mHeight));
@@ -256,6 +253,7 @@ public:
 		MaterialParameterValues params = mDoFParameters;
 		params["u_focusUV"] = focusUV;			// mouse‐driven focus
 		params["u_focusRange"] = focusRange;	// how wide the sharp band is
+		params["u_blurRange"] = blurRange;		// where to switch between the blur passes
 
 		// 3) draw
 		mQuadRenderer.render(*mDofShader, params);

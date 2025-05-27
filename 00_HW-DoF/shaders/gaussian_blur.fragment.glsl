@@ -4,7 +4,6 @@ layout(binding = 1) uniform sampler2D u_2image;
 layout(location = 0) uniform bool u_horizontal;
 
 in vec2 texCoords;
-//out vec4 fragColor;
 layout(location = 0) out vec4 outBlur1;
 layout(location = 1) out vec4 outBlur2;
 
@@ -22,7 +21,6 @@ vec3 gaussianBlur(sampler2D img, vec2 baseTexel, bool horiz) {
     return sum;
 }
 
-
 // simple Gaussian function
 float gaussian(float x, float sigma) {
     return exp(-0.5 * (x*x) / (sigma*sigma)) / (sigma * sqrt(6.28318530718));
@@ -32,7 +30,7 @@ float gaussian(float x, float sigma) {
 vec3 separableBlur(sampler2D img, vec2 texelSize, bool horiz, int radius) {
     vec3  sum       = vec3(0.0);
     float weightSum = 0.0;
-    float sigma     = float(radius) * 0.5;  // tweak σ to taste
+    float sigma     = float(radius) * 0.5;  // can be tweaked
 
     for (int i = -radius; i <= radius; ++i) {
         float w    = gaussian(float(i), sigma);
@@ -52,13 +50,7 @@ void main() {
     outBlur1 = vec4(blur1, 1.0);
     
     // 2) “strong” blur of u_2image
-    /*
-    float strength = 15.0; 
-    vec2 texel2 = (strength / vec2(textureSize(u_2image, 0)));
-    vec3 blur2 = gaussianBlur(u_2image, texel2, u_horizontal);
-    outBlur2 = vec4(blur2, 1.0);
-    */
-    // radius = 20 → 41×41 kernel (±20)
+    // radius = 50 → 101×101 kernel (±50)
     vec2 ts2 = 1.0 / vec2(textureSize(u_2image, 0));
-    outBlur2 = vec4(separableBlur(u_2image, ts2, u_horizontal, 20), 1.0);
+    outBlur2 = vec4(separableBlur(u_2image, ts2, u_horizontal, 50), 1.0);
 }

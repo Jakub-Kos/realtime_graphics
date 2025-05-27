@@ -32,7 +32,8 @@ struct Config {
     bool useZOffset = false;
 
     glm::vec2 focusUV = glm::vec2(0.5f, 0.5f);  // normalized mouse, replacing the focusDist
-    float     focusRange = 2.0f;                // ±10% of depth span
+    float     focusRange = 2.0f;                // depth span
+    float     blurRange = 12.1f;                // blur range
 };
 
 int main() {
@@ -84,9 +85,17 @@ int main() {
                     config.focusRange += 0.01f;
                     std::cout << "focusRange = " << config.focusRange << "\n";
                     break;
+                case GLFW_KEY_B:
+                    config.blurRange = std::max(0.01f, config.blurRange - 0.1f);
+                    std::cout << "blurRange = " << config.blurRange << "\n";
+                    break;
+                case GLFW_KEY_N:
+                    config.blurRange += 0.1f;
+                    std::cout << "blurRange = " << config.blurRange << "\n";
+                    break;
                 }
             }
-            });
+        });
 
         // 3) Load your resources
         OGLMaterialFactory materialFactory;
@@ -115,8 +124,7 @@ int main() {
             renderer.geometryPass(scenes[config.currentSceneIdx], camera, RenderOptions{ "solid" });
             renderer.compositingPass(light);
             renderer.blurPass();
-            // ← Pass the vec2 then the float
-            renderer.dofPass(config.focusUV, config.focusRange);
+            renderer.dofPass(config.focusUV, config.focusRange, config.blurRange);
             });
 
     }
